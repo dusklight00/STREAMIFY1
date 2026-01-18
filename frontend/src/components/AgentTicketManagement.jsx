@@ -5,25 +5,41 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { ticketsApi } from '../lib/api';
 import { useTickets } from '../contexts/TicketContext';
-import { Search, Clock, User, CheckCircle } from 'lucide-react';
+import { Search, Clock, User, CheckCircle, RefreshCcw } from 'lucide-react';
 import { toast } from 'sonner';
+import { useEffect } from 'react';
 
 export function AgentTicketManagement({ user }) {
-  const { tickets, resolveTicket } = useTickets();
+  const { resolveTicket } = useTickets();
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
 
-  // Filter for agent's assigned tickets
-  const agentName = user?.fullName || 'Agent'; 
-  const myTickets = tickets.filter(t => {
-     if (!t.assignedTo) return false;
-     if (typeof t.assignedTo === 'object') return t.assignedTo.name === agentName;
-     return t.assignedTo === agentName;
-  });
+  const fetchAssignedTickets = async () => {
+    try {
+      setLoading(true);
+      const data = await ticketsApi.getAssignedTickets();
+      // Ensure data is array and normalize IDs
+      const mappedData = Array.isArray(data) ? data.map(t => ({...t, id: t._id || t.id})) : [];
+      setTickets(mappedData);
+    } catch (err) {
+      console.error("Failed to fetch assigned tickets:", err);
+      toast.error("Failed to load your tickets");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const filteredTickets = myTickets.filter(ticket => {
+  useEffect(() => {
+    fetchAssignedTickets();
+  }, []);
+
+  // Filter for agent's assigned tickets (now done by backend, but we keep local filters)
+  const filteredTickets = tickets.filter(ticket => {
     const matchesSearch =
       (ticket.customerName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (ticket.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -59,6 +75,9 @@ export function AgentTicketManagement({ user }) {
         <CardHeader className="bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
           <div className="flex items-center justify-between">
             <CardTitle className="text-slate-900">My Tickets ({filteredTickets.length})</CardTitle>
+            <Button variant="ghost" size="sm" onClick={fetchAssignedTickets}>
+              <RefreshCcw className="size-4 mr-2" /> Refresh
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="pt-6">
@@ -116,7 +135,10 @@ export function AgentTicketManagement({ user }) {
               ticket={ticket}
               getPriorityColor={getPriorityColor}
               getStatusColor={getStatusColor}
-              onResolve={resolveTicket}
+              onResolve={async (id, score) => {
+                 await resolveTicket(id, score);
+                 fetchAssignedTickets(); // Refresh list after resolution
+              }}
             />
           ))
         )}

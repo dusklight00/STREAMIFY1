@@ -10,13 +10,29 @@ import { Textarea } from './ui/textarea';
 import { useTickets } from '../contexts/TicketContext';
 import { Search, Plus, Clock, User, Trash2, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { agentsApi } from '../lib/api';
+import { useEffect } from 'react';
 
 export function TicketManagement() {
   const { tickets, addTicket, assignTicket, resolveTicket, deleteTicket } = useTickets();
+  const [agents, setAgents] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const loadAgents = async () => {
+      try {
+        const data = await agentsApi.getAgents();
+        setAgents(data || []);
+      } catch (err) {
+        console.error("Failed to load agents", err);
+        toast.error("Failed to load agents list");
+      }
+    };
+    loadAgents();
+  }, []);
 
   const [formData, setFormData] = useState({
     customerName: '',
@@ -263,6 +279,7 @@ export function TicketManagement() {
               onAssign={assignTicket}
               onResolve={resolveTicket}
               onDelete={deleteTicket}
+              agents={agents}
             />
           ))
         )}
@@ -271,7 +288,7 @@ export function TicketManagement() {
   );
 }
 
-function TicketCard({ ticket, getPriorityColor, getStatusColor, onAssign, onResolve, onDelete }) {
+function TicketCard({ ticket, getPriorityColor, getStatusColor, onAssign, onResolve, onDelete, agents = [] }) {
   const [showResolveDialog, setShowResolveDialog] = useState(false);
   const [satisfactionScore, setSatisfactionScore] = useState(5);
 
@@ -369,18 +386,28 @@ function TicketCard({ ticket, getPriorityColor, getStatusColor, onAssign, onReso
           {/* Quick Actions */}
           <div className="flex lg:flex-col gap-2 min-w-[120px]">
             {ticket.status === 'open' && (
-              <Button 
-                variant="outline"
-                size="sm"
-                className="flex-1 lg:flex-none shadow-sm text-slate-700 hover:text-blue-700 hover:border-blue-200 hover:bg-blue-50"
-                onClick={() => {
-                  onAssign(ticket.id, `Agent ${Math.floor(Math.random() * 7) + 1}`);
-                  toast.success('Ticket assigned');
-                }}
-                style={{backgroundColor: "#bebebe15", color: "#000"}}
-              >
-                Assign
-              </Button>
+              <Select onValueChange={(agentId) => {
+                  const agent = agents.find(a => a._id === agentId || a.id === agentId);
+                  if (agent) {
+                    onAssign(ticket.id, { ...agent, name: agent.fullName, id: agent._id || agent.id });
+                    toast.success(`Assigned to ${agent.fullName}`);
+                  }
+                }}>
+                <SelectTrigger className="flex-1 lg:flex-none shadow-sm text-slate-700 hover:text-blue-700 hover:border-blue-200 hover:bg-blue-50 h-9" style={{backgroundColor: "#bebebe15", color: "#000"}}>
+                  <SelectValue placeholder="Assign" />
+                </SelectTrigger>
+                <SelectContent>
+                  {agents.length > 0 ? (
+                    agents.map((agent) => (
+                      <SelectItem key={agent._id || agent.id} value={agent._id || agent.id}>
+                        {agent.fullName}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="p-2 text-sm text-slate-500 text-center">No agents found</div>
+                  )}
+                </SelectContent>
+              </Select>
             )}
             {ticket.status === 'in-progress' && (
               <Dialog open={showResolveDialog} onOpenChange={setShowResolveDialog}>

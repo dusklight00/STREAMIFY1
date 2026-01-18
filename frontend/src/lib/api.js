@@ -60,6 +60,8 @@ export const ticketsApi = {
   searchTickets: (filters) => api.get('/tickets/search', { params: filters }),
   createTicket: (ticketData) => api.post('/tickets', ticketData),
   assignTicket: (ticketId, agentId) => api.post('/tickets/assign', { ticketId, agentId }),
+  getAssignedTickets: () => api.get('/tickets/assigned'),
+  resolveTicket: (id, data) => api.put(`/tickets/${id}/resolve`, data),
   deleteTicket: (id) => api.delete(`/tickets/${id}`),
 };
 
