@@ -86,7 +86,7 @@ export function SignupPage({ onLogin, onSwitchToLogin }) {
                     value={formData.role}
                     onValueChange={(value) => setFormData({ ...formData, role: value })}
                   >
-                    <SelectTrigger className="pl-10 w-full">
+                    <SelectTrigger className="pl-10 w-full" style={{backgroundColor: "#bebebe15", color: "#000"}}>
                       <SelectValue placeholder="Select your role" />
                     </SelectTrigger>
                     <SelectContent>
@@ -128,6 +128,7 @@ export function SignupPage({ onLogin, onSwitchToLogin }) {
                 type="button"
                 className="text-blue-600 hover:underline font-medium"
                 onClick={onSwitchToLogin}
+                style={{backgroundColor: "#bebebe15", color: "#000"}}
               >
                 Sign in
               </button>
