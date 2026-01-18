@@ -97,6 +97,7 @@ export function CustomerSettings() {
                 <Switch 
                   checked={settings.emailNotifications} 
                   onCheckedChange={(c) => handleChange('emailNotifications', c)} 
+                  style={{backgroundColor: "#bebebe15", color: "#000"}}
                 />
               </div>
 
@@ -108,6 +109,7 @@ export function CustomerSettings() {
                 <Switch 
                   checked={settings.smsAlerts} 
                   onCheckedChange={(c) => handleChange('smsAlerts', c)} 
+                  style={{backgroundColor: "#bebebe15", color: "#000"}}
                 />
               </div>
 
@@ -119,6 +121,7 @@ export function CustomerSettings() {
                 <Switch 
                    checked={settings.desktopNotifications} 
                    onCheckedChange={(c) => handleChange('desktopNotifications', c)}
+                   style={{backgroundColor: "#bebebe15", color: "#000"}}
                 />
               </div>
 
@@ -130,6 +133,7 @@ export function CustomerSettings() {
                 <Switch 
                    checked={settings.dailySummary} 
                    onCheckedChange={(c) => handleChange('dailySummary', c)}
+                   style={{backgroundColor: "#bebebe15", color: "#000"}}
                 />
               </div>
             </div>
@@ -256,6 +260,7 @@ export function CustomerSettings() {
                 <Switch 
                   checked={settings.twoFactorAuth} 
                    onCheckedChange={(c) => handleChange('twoFactorAuth', c)}
+                   style={{backgroundColor: "#bebebe15", color: "#000"}}
                 />
               </div>
 
@@ -275,7 +280,7 @@ export function CustomerSettings() {
                 <Badge className="bg-green-500">Active</Badge>
               </div>
 
-              <Button variant="outline" className="w-full mt-4">
+              <Button variant="outline" className="w-full mt-4" style={{backgroundColor: "#bebebe15", color: "#000"}}>
                 Change Password
               </Button>
             </div>
@@ -285,7 +290,7 @@ export function CustomerSettings() {
 
       {/* Footer Actions */}
       <div className="flex justify-end gap-3 pt-4">
-        <Button variant="outline">Reset to Defaults</Button>
+        <Button variant="outline" style={{backgroundColor: "#bebebe15", color: "#000"}}>Reset to Defaults</Button>
         <Button 
           disabled={loading}
           onClick={handleSave}

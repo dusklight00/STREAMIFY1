@@ -94,7 +94,7 @@ export function AgentList() {
                             
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon">
+                                    <Button variant="ghost" size="icon" style={{backgroundColor: "#bebebe15", color: "#000"}}>
                                         <MoreHorizontal className="size-4 text-slate-400" />
                                     </Button>
                                 </DropdownMenuTrigger>
