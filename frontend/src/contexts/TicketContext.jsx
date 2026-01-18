@@ -80,17 +80,25 @@ export function TicketProvider({ children }) {
     }
   };
 
-  const resolveTicket = (id, satisfactionScore) => {
-    // Simulating resolution update until backend supports it specifically
-    const ticket = tickets.find(t => t.id === id);
-    if (ticket) {
-      const resolutionTime = Math.floor((Date.now() - new Date(ticket.createdAt).getTime()) / 60000);
-      updateTicket(id, { 
-        status: 'resolved', 
-        satisfactionScore,
-        resolutionTime 
-      });
-      // TODO: Add api.tickets.resolveTicket(id, { satisfactionScore, resolutionTime })
+  const resolveTicket = async (id, satisfactionScore) => {
+    try {
+      const updatedTicket = await ticketsApi.resolveTicket(id, { satisfactionScore });
+      // Update local state with the returned updated ticket
+     if(updatedTicket && (updatedTicket.id || updatedTicket._id)) {
+        const normalizedTicket = {...updatedTicket, id: updatedTicket._id || updatedTicket.id};
+        setTickets(prev => prev.map(ticket => 
+          ticket.id === id ? normalizedTicket : ticket
+        ));
+     } else {
+        // Fallback if no ticket returned (shouldn't happen with correct API)
+         setTickets(prev => prev.map(ticket => 
+           ticket.id === id ? { ...ticket, status: 'resolved', satisfactionScore } : ticket
+         ));
+     }
+
+    } catch (err) {
+      console.error("Failed to resolve ticket:", err);
+      toast.error("Failed to resolve ticket");
     }
   };
 

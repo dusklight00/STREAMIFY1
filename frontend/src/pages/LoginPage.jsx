@@ -86,6 +86,7 @@ export function LoginPage({ onLogin, onSwitchToSignup }) {
               <button
                 type="button"
                 className="text-blue-600 hover:underline font-medium"
+                style={{backgroundColor: "#bebebe15", color: "#000"}}
                 onClick={onSwitchToSignup}
               >
                 Sign up

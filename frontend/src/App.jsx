@@ -127,7 +127,7 @@ function AppContent({ user, onLogout }) {
                <span className="text-slate-500 capitalize">{userRole}</span>
             </div>
             
-            <Button variant="ghost" size="icon" onClick={onLogout} title="Logout">
+            <Button variant="ghost" size="icon" onClick={onLogout} title="Logout" style={{backgroundColor: "#bebebe15", color: "#000"}}>
               <LogOut className="size-5 text-slate-500 hover:text-red-500" />
             </Button>
           </div>
@@ -165,9 +165,10 @@ function AppContent({ user, onLogout }) {
                         : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
                     }
                   `}
+                  style={{backgroundColor: "#ffffff40", color: "#000"}}
                 >
                   <Icon className="size-5" />
-                  <span>{item.label}</span>
+                  <span className='text-black'>{item.label}</span>
                 </button>
               );
             })}

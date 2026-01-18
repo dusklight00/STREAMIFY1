@@ -10,13 +10,29 @@ import { Textarea } from './ui/textarea';
 import { useTickets } from '../contexts/TicketContext';
 import { Search, Plus, Clock, User, Trash2, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { agentsApi } from '../lib/api';
+import { useEffect } from 'react';
 
 export function TicketManagement() {
   const { tickets, addTicket, assignTicket, resolveTicket, deleteTicket } = useTickets();
+  const [agents, setAgents] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const loadAgents = async () => {
+      try {
+        const data = await agentsApi.getAgents();
+        setAgents(data || []);
+      } catch (err) {
+        console.error("Failed to load agents", err);
+        toast.error("Failed to load agents list");
+      }
+    };
+    loadAgents();
+  }, []);
 
   const [formData, setFormData] = useState({
     customerName: '',
@@ -97,7 +113,7 @@ export function TicketManagement() {
             <CardTitle className="text-slate-900">All Tickets ({filteredTickets.length})</CardTitle>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="shadow-sm text-slate-900">
+                <Button className="shadow-sm text-slate-900" style={{backgroundColor: "#bebebe15", color: "#000"}}>
                   <Plus className="size-4 mr-2" />
                   New Ticket
                 </Button>
@@ -197,7 +213,7 @@ export function TicketManagement() {
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     />
                   </div>
-                  <Button className="w-full text-slate-900" onClick={handleCreateTicket}>
+                  <Button className="w-full text-slate-900" onClick={handleCreateTicket} style={{backgroundColor: "#bebebe15", color: "#000"}}>
                     Create Ticket
                   </Button>
                 </div>
@@ -217,7 +233,7 @@ export function TicketManagement() {
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-[180px] bg-slate-50 border-slate-200 text-slate-900">
+              <SelectTrigger className="w-full md:w-[180px] bg-slate-50 border-slate-200 text-slate-900" style={{backgroundColor: "#bebebe15", color: "#000"}}>
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -230,7 +246,7 @@ export function TicketManagement() {
               </SelectContent>
             </Select>
             <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-              <SelectTrigger className="w-full md:w-[180px] bg-slate-50 border-slate-200 text-slate-900">
+              <SelectTrigger className="w-full md:w-[180px] bg-slate-50 border-slate-200 text-slate-900" style={{backgroundColor: "#bebebe15", color: "#000"}}>
                 <SelectValue placeholder="Priority" />
               </SelectTrigger>
               <SelectContent>
@@ -263,6 +279,7 @@ export function TicketManagement() {
               onAssign={assignTicket}
               onResolve={resolveTicket}
               onDelete={deleteTicket}
+              agents={agents}
             />
           ))
         )}
@@ -271,7 +288,7 @@ export function TicketManagement() {
   );
 }
 
-function TicketCard({ ticket, getPriorityColor, getStatusColor, onAssign, onResolve, onDelete }) {
+function TicketCard({ ticket, getPriorityColor, getStatusColor, onAssign, onResolve, onDelete, agents = [] }) {
   const [showResolveDialog, setShowResolveDialog] = useState(false);
   const [satisfactionScore, setSatisfactionScore] = useState(5);
 
@@ -369,22 +386,33 @@ function TicketCard({ ticket, getPriorityColor, getStatusColor, onAssign, onReso
           {/* Quick Actions */}
           <div className="flex lg:flex-col gap-2 min-w-[120px]">
             {ticket.status === 'open' && (
-              <Button 
-                variant="outline"
-                size="sm"
-                className="flex-1 lg:flex-none shadow-sm text-slate-700 hover:text-blue-700 hover:border-blue-200 hover:bg-blue-50"
-                onClick={() => {
-                  onAssign(ticket.id, `Agent ${Math.floor(Math.random() * 7) + 1}`);
-                  toast.success('Ticket assigned');
-                }}
-              >
-                Assign
-              </Button>
+              <Select onValueChange={(agentId) => {
+                  const agent = agents.find(a => a._id === agentId || a.id === agentId);
+                  if (agent) {
+                    onAssign(ticket.id, { ...agent, name: agent.fullName, id: agent._id || agent.id });
+                    toast.success(`Assigned to ${agent.fullName}`);
+                  }
+                }}>
+                <SelectTrigger className="flex-1 lg:flex-none shadow-sm text-slate-700 hover:text-blue-700 hover:border-blue-200 hover:bg-blue-50 h-9" style={{backgroundColor: "#bebebe15", color: "#000"}}>
+                  <SelectValue placeholder="Assign" />
+                </SelectTrigger>
+                <SelectContent>
+                  {agents.length > 0 ? (
+                    agents.map((agent) => (
+                      <SelectItem key={agent._id || agent.id} value={agent._id || agent.id}>
+                        {agent.fullName}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="p-2 text-sm text-slate-500 text-center">No agents found</div>
+                  )}
+                </SelectContent>
+              </Select>
             )}
             {ticket.status === 'in-progress' && (
               <Dialog open={showResolveDialog} onOpenChange={setShowResolveDialog}>
                 <DialogTrigger asChild>
-                  <Button className="flex-1 lg:flex-none shadow-sm">
+                  <Button className="flex-1 lg:flex-none shadow-sm" style={{backgroundColor: "#bebebe15", color: "#000"}}>
                     <CheckCircle className="size-4 mr-2" /> Resolve
                   </Button>
                 </DialogTrigger>
@@ -402,12 +430,13 @@ function TicketCard({ ticket, getPriorityColor, getStatusColor, onAssign, onReso
                           size="lg"
                           className="shadow-sm"
                           onClick={() => setSatisfactionScore(score)}
+                          style={{backgroundColor: "#bebebe15", color: "#000"}}
                         >
                           {score}
                         </Button>
                       ))}
                     </div>
-                    <Button className="w-full shadow-sm" onClick={handleResolve}>Confirm Resolution</Button>
+                    <Button className="w-full shadow-sm" onClick={handleResolve} style={{backgroundColor: "#bebebe15", color: "#000"}}>Confirm Resolution</Button>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -417,6 +446,7 @@ function TicketCard({ ticket, getPriorityColor, getStatusColor, onAssign, onReso
               size="icon"
               className="lg:w-full border-slate-300 hover:bg-red-50"
               onClick={handleDelete}
+              style={{backgroundColor: "#bebebe15", color: "#000"}}
             >
               <Trash2 className="size-4 text-red-600" />
             </Button>

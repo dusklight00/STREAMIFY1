@@ -22,6 +22,46 @@ export const assignTicket = async (req, res) => {
   res.json(ticket);
 };
 
+/* Get Assigned Tickets */
+export const getAssignedTickets = async (req, res) => {
+  try {
+    const tickets = await Ticket.find({ assignedTo: req.user._id })
+      .populate("assignedTo", "name email")
+      .populate("createdBy", "name");
+    res.json(tickets);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching assigned tickets", error: error.message });
+  }
+};
+
+/* Resolve Ticket */
+export const resolveTicket = async (req, res) => {
+  const { id } = req.params;
+  const { satisfactionScore } = req.body;
+
+  try {
+    const ticket = await Ticket.findById(id);
+    if (!ticket) return res.status(404).json({ message: "Ticket not found" });
+
+    // Calculate resolution time in minutes
+    const resolutionTime = Math.floor((Date.now() - new Date(ticket.createdAt).getTime()) / 60000);
+
+    const updatedTicket = await Ticket.findByIdAndUpdate(
+      id,
+      { 
+        status: "resolved", 
+        satisfactionScore, 
+        resolutionTime 
+      },
+      { new: true }
+    );
+
+    res.json(updatedTicket);
+  } catch (error) {
+    res.status(500).json({ message: "Error resolving ticket", error: error.message });
+  }
+};
+
 /* Show All Tickets */
 export const getAllTickets = async (req, res) => {
   const tickets = await Ticket.find()
